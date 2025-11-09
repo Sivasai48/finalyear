@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/context/auth-context"
+import { LanguageProvider } from "@/context/language-context"
 import { ChatbotProvider } from "@/components/chatbot/chatbot-provider"
 import "./globals.css"
 
@@ -40,10 +41,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        <AuthProvider>
-          {children}
-          <ChatbotProvider />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+            <ChatbotProvider />
+          </AuthProvider>
+        </LanguageProvider>
         <Analytics />
       </body>
     </html>

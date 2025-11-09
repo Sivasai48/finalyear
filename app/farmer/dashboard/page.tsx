@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/auth-context"
+import { useLanguage } from "@/context/language-context"
+import { LanguageSelector } from "@/components/language-selector"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
@@ -20,6 +22,7 @@ const chartData = [
 export default function FarmerDashboard() {
   const router = useRouter()
   const { user, logout } = useAuthContext()
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (!user || user.type !== "farmer") {
@@ -39,13 +42,14 @@ export default function FarmerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Leaf className="w-8 h-8 text-emerald-600" />
-            <span className="text-xl font-bold text-gray-900">AgriConnect - Farmer</span>
+            <span className="text-xl font-bold text-gray-900">AgriConnect - {t("farmer.welcome").split(",")[0]}</span>
           </div>
           <div className="flex items-center gap-4">
+            <LanguageSelector />
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 bg-transparent">
               <LogOut className="w-4 h-4" />
-              Logout
+              {t("common.logout")}
             </Button>
           </div>
         </div>
@@ -54,15 +58,15 @@ export default function FarmerDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome, Farmer!</h1>
-          <p className="text-gray-600">Manage your crops, track prices, and connect with traders</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t("farmer.welcome")}</h1>
+          <p className="text-gray-600">{t("farmer.subtitle")}</p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("farmer.activeCrops")}</CardTitle>
               <Leaf className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
@@ -72,7 +76,7 @@ export default function FarmerDashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Trader Requests</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("farmer.traderRequests")}</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -82,22 +86,22 @@ export default function FarmerDashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Price</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("farmer.avgPrice")}</CardTitle>
               <TrendingUp className="h-4 w-4 text-amber-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹4,200</div>
-              <p className="text-xs text-gray-600">Per quintal</p>
+              <p className="text-xs text-gray-600">{t("farmer.perQuintal")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("farmer.successRate")}</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">92%</div>
-              <p className="text-xs text-gray-600">Transactions</p>
+              <p className="text-xs text-gray-600">{t("farmer.transactions")}</p>
             </CardContent>
           </Card>
         </div>
@@ -107,8 +111,8 @@ export default function FarmerDashboard() {
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Yield Performance</CardTitle>
-                <CardDescription>Your yield vs. average</CardDescription>
+                <CardTitle>{t("farmer.yieldPerformance")}</CardTitle>
+                <CardDescription>{t("farmer.yourYieldVsAverage")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -129,35 +133,35 @@ export default function FarmerDashboard() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>{t("farmer.quickActions")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
                   className="w-full bg-emerald-600 hover:bg-emerald-700"
                   onClick={() => router.push("/farmer/crop-prediction")}
                 >
-                  Predict Crop
+                  {t("farmer.predictCrop")}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full bg-transparent"
                   onClick={() => router.push("/farmer/price-prediction")}
                 >
-                  Price Predictions
+                  {t("farmer.pricePredictions")}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full bg-transparent"
                   onClick={() => router.push("/farmer/dhalari-info")}
                 >
-                  Find Traders
+                  {t("farmer.findTraders")}
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Need Help?</CardTitle>
+                <CardTitle>{t("farmer.needHelp")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Button
@@ -166,7 +170,7 @@ export default function FarmerDashboard() {
                   onClick={() => router.push("/farmer/contact-help")}
                 >
                   <HelpCircle className="w-4 h-4" />
-                  Support
+                  {t("farmer.support")}
                 </Button>
               </CardContent>
             </Card>
