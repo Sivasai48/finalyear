@@ -1,0 +1,178 @@
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuthContext } from "@/context/auth-context"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { TrendingUp, Leaf, Users, HelpCircle, LogOut } from "lucide-react"
+
+const chartData = [
+  { month: "Jan", yield: 4000, avg: 2400 },
+  { month: "Feb", yield: 3000, avg: 1398 },
+  { month: "Mar", yield: 2000, avg: 9800 },
+  { month: "Apr", yield: 2780, avg: 3908 },
+  { month: "May", yield: 1890, avg: 4800 },
+  { month: "Jun", yield: 2390, avg: 3800 },
+]
+
+export default function FarmerDashboard() {
+  const router = useRouter()
+  const { user, logout } = useAuthContext()
+
+  useEffect(() => {
+    if (!user || user.type !== "farmer") {
+      router.push("/")
+    }
+  }, [user, router])
+
+  const handleLogout = () => {
+    logout()
+    router.push("/")
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+      {/* Header */}
+      <header className="border-b border-emerald-100 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Leaf className="w-8 h-8 text-emerald-600" />
+            <span className="text-xl font-bold text-gray-900">AgriConnect - Farmer</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">{user?.email}</span>
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 bg-transparent">
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Welcome, Farmer!</h1>
+          <p className="text-gray-600">Manage your crops, track prices, and connect with traders</p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+              <Leaf className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-gray-600">+3 this week</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Trader Requests</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">8</div>
+              <p className="text-xs text-gray-600">5 this month</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg. Price</CardTitle>
+              <TrendingUp className="h-4 w-4 text-amber-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₹4,200</div>
+              <p className="text-xs text-gray-600">Per quintal</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">92%</div>
+              <p className="text-xs text-gray-600">Transactions</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts and Actions */}
+        <div className="grid md:grid-cols-3 gap-8 mb-8">
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Yield Performance</CardTitle>
+                <CardDescription>Your yield vs. average</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="yield" fill="#10b981" />
+                    <Bar dataKey="avg" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => router.push("/farmer/crop-prediction")}
+                >
+                  Predict Crop
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  onClick={() => router.push("/farmer/price-prediction")}
+                >
+                  Price Predictions
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  onClick={() => router.push("/farmer/dhalari-info")}
+                >
+                  Find Traders
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 bg-transparent"
+                  onClick={() => router.push("/farmer/contact-help")}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Support
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
