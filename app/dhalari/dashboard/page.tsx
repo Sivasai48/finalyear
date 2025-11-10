@@ -9,7 +9,7 @@ import { NotificationsBell } from "@/components/notifications-bell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { TrendingUp, Package, IndianRupee, Users, LogOut } from "lucide-react"
+import { TrendingUp, Package, IndianRupee, Users, LogOut, HelpCircle } from "lucide-react"
 
 export default function DhalariDashboard() {
   const router = useRouter()
@@ -213,16 +213,32 @@ export default function DhalariDashboard() {
                 >
                   {t("dhalari.analytics")}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full bg-amber-600 text-white hover:bg-amber-700"
-                  onClick={() => router.push("/dhalari/query-support")}
-                >
-                  Query Support
-                </Button>
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        <div className="mt-8">
+          <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-6 h-6 text-amber-600" />
+                <CardTitle className="text-amber-900">Query Support & Help</CardTitle>
+              </div>
+              <CardDescription className="text-amber-700">
+                Need assistance? Get help with platform features and resolve your queries
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => router.push("/dhalari/query-support")}
+              >
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Open Query Support Center
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
