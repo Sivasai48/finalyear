@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,34 +22,54 @@ import {
 } from "recharts"
 import { ArrowLeft, TrendingUp } from "lucide-react"
 
-const monthlyData = [
-  { month: "Jan", deals: 12, revenue: 45000 },
-  { month: "Feb", deals: 19, revenue: 52000 },
-  { month: "Mar", deals: 15, revenue: 48000 },
-  { month: "Apr", deals: 22, revenue: 61000 },
-  { month: "May", deals: 25, revenue: 68000 },
-  { month: "Jun", deals: 20, revenue: 55000 },
-]
-
-const cropData = [
-  { name: "Wheat", value: 35 },
-  { name: "Rice", value: 25 },
-  { name: "Cotton", value: 20 },
-  { name: "Sugarcane", value: 15 },
-  { name: "Maize", value: 5 },
-]
-
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
-
 export default function DhalariAnalytics() {
   const router = useRouter()
   const { user } = useAuthContext()
+  const [stats, setStats] = useState<any>(null)
+  const [monthlyData, setMonthlyData] = useState<any[]>([])
+  const [cropData, setCropData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user || user.type !== "dhalari") {
       router.push("/")
     }
   }, [user, router])
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (!user?.id) return
+
+      try {
+        const response = await fetch(`/api/dhalari/analytics?dhalariId=${user.id}`)
+        const data = await response.json()
+
+        if (data.success) {
+          setStats(data.data.stats)
+          setMonthlyData(data.data.monthlyData)
+          setCropData(data.data.cropDistribution)
+        }
+      } catch (error) {
+        console.error("[v0] Error fetching analytics:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAnalytics()
+    const interval = setInterval(fetchAnalytics, 10000)
+    return () => clearInterval(interval)
+  }, [user])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    )
+  }
+
+  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
@@ -70,8 +90,8 @@ export default function DhalariAnalytics() {
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">156</div>
-              <p className="text-xs text-gray-600">+12 this month</p>
+              <div className="text-2xl font-bold">{stats?.totalDeals || 0}</div>
+              <p className="text-xs text-gray-600">Completed deals</p>
             </CardContent>
           </Card>
 
@@ -81,7 +101,7 @@ export default function DhalariAnalytics() {
               <TrendingUp className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹42.5L</div>
+              <div className="text-2xl font-bold">₹{((stats?.totalRevenue || 0) / 100000).toFixed(1)}L</div>
               <p className="text-xs text-gray-600">All time</p>
             </CardContent>
           </Card>
@@ -92,19 +112,19 @@ export default function DhalariAnalytics() {
               <TrendingUp className="h-4 w-4 text-amber-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹2.7L</div>
+              <div className="text-2xl font-bold">₹{((stats?.avgDealSize || 0) / 100000).toFixed(1)}L</div>
               <p className="text-xs text-gray-600">Per transaction</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">94%</div>
-              <p className="text-xs text-gray-600">Deal completion</p>
+              <div className="text-2xl font-bold">₹{((stats?.totalEarnings || 0) / 1000).toFixed(1)}K</div>
+              <p className="text-xs text-gray-600">Commission earned</p>
             </CardContent>
           </Card>
         </div>
@@ -116,18 +136,22 @@ export default function DhalariAnalytics() {
               <CardDescription>Deals and revenue by month</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="deals" stroke="#3b82f6" name="Deals" />
-                  <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#10b981" name="Revenue" />
-                </LineChart>
-              </ResponsiveContainer>
+              {monthlyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Legend />
+                    <Line yAxisId="left" type="monotone" dataKey="deals" stroke="#3b82f6" name="Deals" />
+                    <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#10b981" name="Revenue" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-gray-400">No data available yet</div>
+              )}
             </CardContent>
           </Card>
 
@@ -137,25 +161,29 @@ export default function DhalariAnalytics() {
               <CardDescription>Sales by crop type</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={cropData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {cropData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              {cropData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={cropData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {cropData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-gray-400">No data available yet</div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -166,15 +194,19 @@ export default function DhalariAnalytics() {
             <CardDescription>Cumulative revenue over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
+            {monthlyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="revenue" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">No data available yet</div>
+            )}
           </CardContent>
         </Card>
       </main>

@@ -16,9 +16,14 @@ export default function DhalariProfile() {
   const [formData, setFormData] = useState({
     businessName: "Sharma Agricultural Traders",
     email: "",
-    phone: "+91 98765 43210",
+    phone: "", // Changed to empty string for editing
     location: "Mumbai, Maharashtra",
+    district: "", // Added district field
+    state: "", // Added state field
+    specializations: ["Wheat", "Rice", "Cotton"], // Made specializations editable array
+    commissionRate: "5", // Added commission rate
   })
+
   const [newSpecialization, setNewSpecialization] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState("")
@@ -92,6 +97,19 @@ export default function DhalariProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="+91 9876543210"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                   <input
@@ -102,16 +120,31 @@ export default function DhalariProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
                   <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    type="text"
+                    name="district"
+                    value={formData.district}
                     onChange={handleInputChange}
+                    placeholder="Mumbai"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    placeholder="Maharashtra"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                   <input
@@ -122,6 +155,21 @@ export default function DhalariProfile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Commission Rate (%)</label>
+                  <input
+                    type="number"
+                    name="commissionRate"
+                    value={formData.commissionRate}
+                    onChange={handleInputChange}
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Button
                     onClick={handleSaveChanges}
@@ -147,7 +195,7 @@ export default function DhalariProfile() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  {["Wheat", "Rice", "Cotton", "Sugarcane", "Maize"].map((crop) => (
+                  {formData.specializations.map((crop) => (
                     <div key={crop} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
                       {crop}
                     </div>

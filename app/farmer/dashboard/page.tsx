@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/auth-context"
 import { useLanguage } from "@/context/language-context"
 import { LanguageSelector } from "@/components/language-selector"
+import { NotificationsBell } from "@/components/notifications-bell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
@@ -23,12 +24,37 @@ export default function FarmerDashboard() {
   const router = useRouter()
   const { user, logout } = useAuthContext()
   const { t } = useLanguage()
+  const [stats, setStats] = useState({
+    activeCrops: 0,
+    totalRequests: 0,
+    avgPrice: 0,
+    successRate: 0,
+  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user || user.type !== "farmer") {
       router.push("/")
+      return
     }
+
+    fetchStats()
   }, [user, router])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`/api/farmer/stats?farmerId=${user?.id}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setStats(data.data)
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching stats:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -45,6 +71,7 @@ export default function FarmerDashboard() {
             <span className="text-xl font-bold text-gray-900">AgriConnect - {t("farmer.welcome").split(",")[0]}</span>
           </div>
           <div className="flex items-center gap-4">
+            <NotificationsBell userId={user?.id || "farmer-001"} userType="farmer" />
             <LanguageSelector />
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 bg-transparent">
@@ -64,24 +91,30 @@ export default function FarmerDashboard() {
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push("/farmer/my-crops")}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("farmer.activeCrops")}</CardTitle>
               <Leaf className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-gray-600">+3 this week</p>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.activeCrops}</div>
+              <p className="text-xs text-gray-600">Currently listed</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push("/farmer/trader-requests")}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("farmer.traderRequests")}</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-gray-600">5 this month</p>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.totalRequests}</div>
+              <p className="text-xs text-gray-600">Pending offers</p>
             </CardContent>
           </Card>
           <Card>
@@ -90,7 +123,7 @@ export default function FarmerDashboard() {
               <TrendingUp className="h-4 w-4 text-amber-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹4,200</div>
+              <div className="text-2xl font-bold">₹{loading ? "..." : stats.avgPrice}</div>
               <p className="text-xs text-gray-600">{t("farmer.perQuintal")}</p>
             </CardContent>
           </Card>
@@ -100,7 +133,7 @@ export default function FarmerDashboard() {
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">92%</div>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.successRate}%</div>
               <p className="text-xs text-gray-600">{t("farmer.transactions")}</p>
             </CardContent>
           </Card>
@@ -138,6 +171,13 @@ export default function FarmerDashboard() {
               <CardContent className="space-y-3">
                 <Button
                   className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => router.push("/farmer/add-crop")}
+                >
+                  {t("farmer.addMyCrop")}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
                   onClick={() => router.push("/farmer/crop-prediction")}
                 >
                   {t("farmer.predictCrop")}
@@ -155,6 +195,20 @@ export default function FarmerDashboard() {
                   onClick={() => router.push("/farmer/dhalari-info")}
                 >
                   {t("farmer.findTraders")}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => router.push("/farmer/dealer-requests")}
+                >
+                  Dealer Requests
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  onClick={() => router.push("/farmer/profile")}
+                >
+                  {t("common.myProfile")}
                 </Button>
               </CardContent>
             </Card>

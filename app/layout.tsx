@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/context/auth-context"
 import { LanguageProvider } from "@/context/language-context"
 import { ChatbotProvider } from "@/components/chatbot/chatbot-provider"
+import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -45,6 +46,7 @@ export default function RootLayout({
           <AuthProvider>
             {children}
             <ChatbotProvider />
+            <Toaster />
           </AuthProvider>
         </LanguageProvider>
         <Analytics />

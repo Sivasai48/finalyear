@@ -1,35 +1,59 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/auth-context"
 import { useLanguage } from "@/context/language-context"
 import { LanguageSelector } from "@/components/language-selector"
+import { NotificationsBell } from "@/components/notifications-bell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { TrendingUp, Package, IndianRupee, Users, LogOut } from "lucide-react"
 
-const revenueData = [
-  { date: "Mon", revenue: 12000 },
-  { date: "Tue", revenue: 19000 },
-  { date: "Wed", revenue: 15000 },
-  { date: "Thu", revenue: 22000 },
-  { date: "Fri", revenue: 25000 },
-  { date: "Sat", revenue: 20000 },
-  { date: "Sun", revenue: 18000 },
-]
-
 export default function DhalariDashboard() {
   const router = useRouter()
   const { user, logout } = useAuthContext()
   const { t } = useLanguage()
+  const [stats, setStats] = useState({
+    totalDeals: 0,
+    totalRevenue: 0,
+    totalEarnings: 0,
+    avgDealSize: 0,
+    successRate: 0,
+  })
+  const [monthlyData, setMonthlyData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user || user.type !== "dhalari") {
       router.push("/")
+      return
     }
+
+    fetchStats()
   }, [user, router])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`/api/dhalari/analytics?dhalariId=${user?.id}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setStats(data.data.stats)
+        setMonthlyData(data.data.monthlyData)
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching stats:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const interval = setInterval(fetchStats, 10000)
+    return () => clearInterval(interval)
+  }, [user])
 
   const handleLogout = () => {
     logout()
@@ -46,6 +70,7 @@ export default function DhalariDashboard() {
             <span className="text-xl font-bold text-gray-900">AgriConnect - {t("dhalari.welcome").split(",")[0]}</span>
           </div>
           <div className="flex items-center gap-4">
+            <NotificationsBell userId={user?.id || "dhalari-001"} userType="dhalari" />
             <LanguageSelector />
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 bg-transparent">
@@ -65,34 +90,43 @@ export default function DhalariDashboard() {
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push("/dhalari/requests")}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("dhalari.pendingRequests")}</CardTitle>
+              <CardTitle className="text-sm font-medium">Available Crops</CardTitle>
               <Package className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">24</div>
-              <p className="text-xs text-gray-600">+5 this week</p>
+              <div className="text-2xl font-bold">{loading ? "..." : "View"}</div>
+              <p className="text-xs text-gray-600">Click to browse</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push("/dhalari/accepted-deals")}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("dhalari.acceptedDeals")}</CardTitle>
               <Users className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">156</div>
-              <p className="text-xs text-gray-600">All time</p>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.totalDeals}</div>
+              <p className="text-xs text-gray-600">Click to view details</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push("/dhalari/earnings")}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("dhalari.totalEarnings")}</CardTitle>
               <IndianRupee className="h-4 w-4 text-amber-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹12.5L</div>
-              <p className="text-xs text-gray-600">{t("dhalari.thisMonth")}</p>
+              <div className="text-2xl font-bold">₹{loading ? "..." : (stats.totalEarnings / 1000).toFixed(1)}K</div>
+              <p className="text-xs text-gray-600">Click for breakdown</p>
             </CardContent>
           </Card>
           <Card>
@@ -101,7 +135,7 @@ export default function DhalariDashboard() {
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹80K</div>
+              <div className="text-2xl font-bold">₹{loading ? "..." : (stats.avgDealSize / 1000).toFixed(0)}K</div>
               <p className="text-xs text-gray-600">{t("dhalari.perTransaction")}</p>
             </CardContent>
           </Card>
@@ -116,27 +150,33 @@ export default function DhalariDashboard() {
                 <CardDescription>{t("dhalari.yourEarningsThisWeek")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={revenueData}>
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#3b82f6"
-                      fillOpacity={1}
-                      fill="url(#colorRevenue)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {monthlyData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={monthlyData}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#colorRevenue)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-gray-400">
+                    No deals yet. Accept deals to see your earnings!
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -154,6 +194,12 @@ export default function DhalariDashboard() {
                   {t("dhalari.viewRequests")}
                 </Button>
                 <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => router.push("/dhalari/send-request")}
+                >
+                  Send Crop Request
+                </Button>
+                <Button
                   variant="outline"
                   className="w-full bg-transparent"
                   onClick={() => router.push("/dhalari/profile")}
@@ -167,26 +213,13 @@ export default function DhalariDashboard() {
                 >
                   {t("dhalari.analytics")}
                 </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dhalari.profileStats")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">{t("dhalari.rating")}</span>
-                  <span className="font-semibold">4.8/5.0</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">{t("dhalari.successRate")}</span>
-                  <span className="font-semibold">94%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">{t("dhalari.verified")}</span>
-                  <span className="font-semibold text-emerald-600">Yes</span>
-                </div>
+                <Button
+                  variant="outline"
+                  className="w-full bg-amber-600 text-white hover:bg-amber-700"
+                  onClick={() => router.push("/dhalari/query-support")}
+                >
+                  Query Support
+                </Button>
               </CardContent>
             </Card>
           </div>

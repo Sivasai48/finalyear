@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/auth-context"
+import { useLanguage } from "@/context/language-context"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, MapPin, Phone, Star, Loader2 } from "lucide-react"
@@ -10,6 +11,7 @@ import { ArrowLeft, MapPin, Phone, Star, Loader2 } from "lucide-react"
 export default function DhalariInfoPage() {
   const router = useRouter()
   const { user } = useAuthContext()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [dhalaris, setDhalaris] = useState([])
   const [filter, setFilter] = useState({ crop: "all", location: "all" })
@@ -25,11 +27,11 @@ export default function DhalariInfoPage() {
   const fetchDhalaris = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/dhalari/list")
+      const response = await fetch("/api/dhalari/database")
       const result = await response.json()
       setDhalaris(result.data || [])
     } catch (error) {
-      console.error("Failed to fetch dhalaris:", error)
+      console.error("[v0] Failed to fetch dhalaris:", error)
       setDhalaris([])
     } finally {
       setLoading(false)
@@ -55,8 +57,8 @@ export default function DhalariInfoPage() {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Verified Traders</h1>
-          <p className="text-gray-600">Connect with trusted dhalaris (agricultural traders) in your area</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("find_verified_traders")}</h1>
+          <p className="text-gray-600">{t("connect_with_trusted_dhalaris")}</p>
         </div>
 
         {/* Filters */}
@@ -64,32 +66,32 @@ export default function DhalariInfoPage() {
           <CardContent className="pt-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Filter by Crop</label>
+                <label className="text-sm font-medium">{t("filter_by_crop")}</label>
                 <select
                   value={filter.crop}
                   onChange={(e) => setFilter({ ...filter, crop: e.target.value })}
                   className="w-full mt-2 px-3 py-2 border border-gray-200 rounded-md"
                 >
-                  <option value="all">All Crops</option>
-                  <option value="wheat">Wheat</option>
-                  <option value="rice">Rice</option>
-                  <option value="cotton">Cotton</option>
-                  <option value="sugarcane">Sugarcane</option>
+                  <option value="all">{t("all_crops")}</option>
+                  <option value="wheat">{t("wheat")}</option>
+                  <option value="rice">{t("rice")}</option>
+                  <option value="cotton">{t("cotton")}</option>
+                  <option value="sugarcane">{t("sugarcane")}</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Filter by Location</label>
+                <label className="text-sm font-medium">{t("filter_by_location")}</label>
                 <select
                   value={filter.location}
                   onChange={(e) => setFilter({ ...filter, location: e.target.value })}
                   className="w-full mt-2 px-3 py-2 border border-gray-200 rounded-md"
                 >
-                  <option value="all">All Locations</option>
-                  <option value="punjab">Punjab</option>
-                  <option value="haryana">Haryana</option>
-                  <option value="maharashtra">Maharashtra</option>
-                  <option value="delhi">Delhi</option>
-                  <option value="west bengal">West Bengal</option>
+                  <option value="all">{t("all_locations")}</option>
+                  <option value="punjab">{t("punjab")}</option>
+                  <option value="haryana">{t("haryana")}</option>
+                  <option value="maharashtra">{t("maharashtra")}</option>
+                  <option value="delhi">{t("delhi")}</option>
+                  <option value="west bengal">{t("west_bengal")}</option>
                 </select>
               </div>
             </div>
@@ -126,7 +128,7 @@ export default function DhalariInfoPage() {
                         <span>{dhalari.location}</span>
                       </div>
                       <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-700">Specializations:</p>
+                        <p className="text-sm font-medium text-gray-700">{t("specializations")}</p>
                         <div className="flex flex-wrap gap-2 mt-1">
                           {dhalari.specialization?.map((crop: string) => (
                             <span key={crop} className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">
@@ -136,22 +138,22 @@ export default function DhalariInfoPage() {
                         </div>
                       </div>
                       <div className="mt-3 text-sm text-gray-600">
-                        <span className="font-medium">Experience:</span> {dhalari.experience} years
+                        <span className="font-medium">{t("experience")}</span>: {dhalari.experience} {t("years")}
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex flex-col justify-between gap-3">
                       <div>
-                        <p className="text-xs text-gray-500">Commission Rate</p>
+                        <p className="text-xs text-gray-500">{t("commission_rate")}</p>
                         <p className="text-lg font-bold text-blue-600">{dhalari.commission}%</p>
                       </div>
                       <Button
-                        onClick={() => alert(`Contacting ${dhalari.name}...\nPhone: ${dhalari.phone}`)}
+                        onClick={() => alert(`${t("contacting")} ${dhalari.name}...\n${t("phone")}: ${dhalari.phone}`)}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2"
                       >
                         <Phone className="w-4 h-4" />
-                        Contact
+                        {t("contact")}
                       </Button>
                     </div>
                   </div>
@@ -161,9 +163,7 @@ export default function DhalariInfoPage() {
 
             {filteredDhalaris.length === 0 && (
               <Card>
-                <CardContent className="pt-6 text-center text-gray-500">
-                  No traders found with selected filters. Try adjusting your search.
-                </CardContent>
+                <CardContent className="pt-6 text-center text-gray-500">{t("no_traders_found")}</CardContent>
               </Card>
             )}
           </div>
