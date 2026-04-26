@@ -32,10 +32,10 @@ export default function FarmerAuth() {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/auth/farmer-login", {
+      const response = await fetch("http://127.0.0.1:8000/api/auth/farmer-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "send-otp", phone: `91${phone.slice(-10)}` }),
+        body: JSON.stringify({ action: "send-otp", phone: phone }),
       })
 
       const data = await response.json()
@@ -45,10 +45,12 @@ export default function FarmerAuth() {
         setStep("otp")
         setError("")
       } else {
-        setError(data.error || "Failed to send OTP")
+        console.error("OTP Send Error:", data)
+        setError(data.detail || "Failed to send OTP")
       }
     } catch (err) {
-      setError("Failed to send OTP. Please try again.")
+      console.error("Fetch Error:", err)
+      setError("Failed to send OTP. Is the server running?")
     } finally {
       setLoading(false)
     }
@@ -65,22 +67,28 @@ export default function FarmerAuth() {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/auth/farmer-login", {
+      // Call Python Backend
+      const response = await fetch("http://127.0.0.1:8000/api/auth/farmer-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "verify-otp", phone: `91${phone.slice(-10)}`, otp }),
+        // Send raw phone (10 digits expected by backend logic we wrote, or whatever input has)
+        body: JSON.stringify({ action: "verify-otp", phone: phone, otp }),
       })
 
       const data = await response.json()
 
       if (data.success) {
+        // Save Token
+        localStorage.setItem("auth-token", data.access_token)
         login(data.user)
         router.push("/farmer/dashboard")
       } else {
-        setError(data.error || "Invalid OTP")
+        console.error("OTP Verify Error:", data)
+        setError(data.detail || "Invalid OTP")
       }
-    } catch (err) {
-      setError("Failed to verify OTP. Please try again.")
+    } catch (err: any) {
+      console.error("Verify Fetch Error:", err)
+      setError(`Failed to verify OTP: ${err.message || "Network error"}`)
     } finally {
       setLoading(false)
     }
@@ -123,7 +131,7 @@ export default function FarmerAuth() {
                   </div>
                   <Input
                     type="tel"
-                    placeholder="9876543210"
+                    placeholder="Enter your phone number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     className="flex-1"

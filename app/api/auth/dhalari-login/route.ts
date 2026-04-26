@@ -1,20 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 // Mock database for dhalaris
-const dhalaris: Record<string, any> = {
-  dhalari1: {
-    id: "dhalari1",
-    email: "sharma@agrotrade.com",
-    name: "Sharma & Sons Trading",
-    businessType: "Wholesale Trader",
-    specialization: ["Wheat", "Rice", "Cotton"],
-    location: "Amritsar, Punjab",
-    rating: 4.8,
-    verified: true,
-    commission: 5,
-    createdAt: new Date("2022-06-10"),
-  },
-}
+const dhalaris: Record<string, any> = {}
 
 export async function POST(request: NextRequest) {
   try {

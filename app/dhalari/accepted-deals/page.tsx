@@ -11,14 +11,15 @@ import { ArrowLeft, Leaf, Package } from "lucide-react"
 
 interface Deal {
   id: string
-  cropType: string
+  cropName: string
+  farmerName: string
+  farmerPhone: string
   quantity: number
   pricePerKg: number
   totalValue: number
   earnings: number
-  month: string
-  year: number
   createdAt: string
+  status: string
 }
 
 export default function AcceptedDeals() {
@@ -39,11 +40,40 @@ export default function AcceptedDeals() {
 
   const fetchDeals = async () => {
     try {
-      const response = await fetch(`/api/dhalari/deals?dhalariId=${user?.id || "dhalari-001"}`)
-      const data = await response.json()
-      if (data.success) {
-        setDeals(data.data)
+      // @ts-ignore
+      const dhalariId = user?.id || user?.sub
+      if (!dhalariId) {
+        setLoading(false)
+        return
       }
+
+
+      // Fetch from actual backend API
+      const response = await fetch(`http://127.0.0.1:8000/api/trader-requests/dhalari/${dhalariId}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch deals")
+      }
+
+      const data = await response.json()
+
+      // Filter for accepted deals only and map to our interface
+      const acceptedDeals = data
+        .filter((req: any) => req.status === "accepted")
+        .map((req: any) => ({
+          id: req.id,
+          cropName: req.crop_name || "Unknown Crop",
+          farmerName: req.farmer_name || "Farmer",
+          farmerPhone: req.farmer_phone || "N/A",
+          quantity: req.requested_quantity || 0,
+          pricePerKg: req.offered_price || 0,
+          totalValue: (req.requested_quantity || 0) * (req.offered_price || 0),
+          earnings: ((req.requested_quantity || 0) * (req.offered_price || 0)) * 0.1, // 10% commission
+          createdAt: req.created_at,
+          status: req.status
+        }))
+
+      setDeals(acceptedDeals)
     } catch (error) {
       console.error("[v0] Error fetching deals:", error)
     } finally {
@@ -59,14 +89,14 @@ export default function AcceptedDeals() {
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Accepted Deals</h1>
+            <h1 className="text-2xl font-bold">{t("dhalari.acceptedDeals")}</h1>
           </div>
           <LanguageSelector />
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p className="text-gray-600 mb-6">View all your completed deals and earnings</p>
+        <p className="text-gray-600 mb-6 font-medium">View all your completed deals and total spending</p>
 
         {loading ? (
           <div className="text-center py-12">Loading...</div>
@@ -78,38 +108,39 @@ export default function AcceptedDeals() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {deals.map((deal) => (
-              <Card key={deal.id} className="hover:shadow-lg transition-shadow">
+              <Card key={deal.id} className="hover:shadow-lg transition-shadow border-blue-50">
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Leaf className="w-5 h-5 text-emerald-600" />
-                        <h3 className="font-semibold text-lg">{deal.cropType}</h3>
+                        <Leaf className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-semibold text-lg">{deal.cropName}</h3>
                       </div>
-                      <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs">Completed</span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-bold">Accepted</span>
                     </div>
 
-                    <div className="space-y-2 text-sm">
+                    <div className="text-sm text-gray-600 border-b pb-2">
+                      <p><strong>Farmer:</strong> {deal.farmerName}</p>
+                      <p><strong>Phone:</strong> {deal.farmerPhone}</p>
+                    </div>
+
+                    <div className="space-y-2 text-sm italic">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Quantity:</span>
                         <span className="font-semibold">{deal.quantity} Kg</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Price/Kg:</span>
-                        <span className="font-semibold">₹{deal.pricePerKg}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Value:</span>
-                        <span className="font-semibold">₹{deal.totalValue.toLocaleString()}</span>
+                        <span className="font-semibold text-blue-600">₹{deal.pricePerKg}</span>
                       </div>
                       <div className="flex justify-between border-t pt-2">
-                        <span className="text-gray-600">Your Earnings:</span>
-                        <span className="font-bold text-emerald-600">₹{deal.earnings.toLocaleString()}</span>
+                        <span className="text-gray-600 font-bold">Total Amount Spent:</span>
+                        <span className="font-bold text-blue-800">₹{deal.totalValue.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Date:</span>
                         <span className="text-xs">
-                          {deal.month} {deal.year}
+                          {new Date(deal.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>

@@ -18,11 +18,13 @@ export function NotificationsBell({ userId, userType }: NotificationsBellProps) 
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
+      if (!userId || userId.startsWith("dhalari-001")) return // Skip mock IDs
+
       try {
-        const response = await fetch(`/api/notifications?userId=${userId}`)
+        const response = await fetch(`http://127.0.0.1:8000/api/notifications/count/${userId}`)
         const data = await response.json()
-        if (data.success) {
-          setUnreadCount(data.unreadCount)
+        if (data) {
+          setUnreadCount(data.unread_count)
         }
       } catch (error) {
         console.error("[v0] Error fetching notifications:", error)
@@ -30,7 +32,7 @@ export function NotificationsBell({ userId, userType }: NotificationsBellProps) 
     }
 
     fetchUnreadCount()
-    const interval = setInterval(fetchUnreadCount, 10000) // Refresh every 10 seconds
+    const interval = setInterval(fetchUnreadCount, 15000) // Refresh every 15 seconds
     return () => clearInterval(interval)
   }, [userId])
 
@@ -52,7 +54,7 @@ export function NotificationsBell({ userId, userType }: NotificationsBellProps) 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuItem onClick={handleViewNotifications}>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 cursor-pointer w-full">
             <span className="font-semibold">Notifications</span>
             <span className="text-xs text-gray-500">
               {unreadCount > 0

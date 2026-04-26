@@ -1,18 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 // Mock database for farmers
-const farmers: Record<string, any> = {
-  "919876543210": {
-    id: "farmer1",
-    phone: "919876543210",
-    name: "Rajesh Kumar",
-    state: "Punjab",
-    crop: "Wheat",
-    landSize: 5,
-    verified: true,
-    createdAt: new Date("2023-01-15"),
-  },
-}
+const farmers: Record<string, any> = {}
 
 // Mock OTP storage (in production, use Redis or database)
 const otpStore: Record<string, { otp: string; expiresAt: number }> = {}
@@ -33,7 +22,7 @@ export async function POST(request: NextRequest) {
       // In production, send via Twilio
       otpStore[phone] = { otp: generatedOtp, expiresAt }
 
-      console.log(`OTP for ${phone}: ${generatedOtp}`) // For demo only
+
 
       return NextResponse.json({
         success: true,

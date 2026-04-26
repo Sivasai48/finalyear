@@ -40,20 +40,30 @@ export default function AddCropPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/crops/add", {
+      const token = localStorage.getItem("auth-token")
+      const response = await fetch("http://127.0.0.1:8000/api/crops", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
-          ...formData,
-          farmerId: user?.id,
-          farmerEmail: user?.email,
-          farmerName: user?.name || user?.email,
+          name: formData.cropName,
+          quantity: parseFloat(formData.quantity),
+          expected_price: parseFloat(formData.pricePerKg),
+          location: formData.location,
+          description: formData.description,
+          // @ts-ignore
+          farmer_id: user?.id || user?.sub,
+          // Send dates in YYYY-MM-DD format
+          season: "Kharif",
+          sowing_date: new Date().toISOString().split('T')[0],
+          harvest_date: new Date().toISOString().split('T')[0]
         }),
       })
 
-      const data = await response.json()
-
-      if (response.ok && data.success) {
+      if (response.ok) {
+        const data = await response.json()
         toast({
           title: t("addCrop.success") || "Success!",
           description: "Your crop has been added successfully and is now visible to traders.",
@@ -61,9 +71,11 @@ export default function AddCropPage() {
         })
         router.push("/farmer/my-crops")
       } else {
+        const err = await response.json()
+        console.error("Backend error:", err)
         toast({
           title: "Error",
-          description: "Failed to add crop. Please try again.",
+          description: err.detail || "Failed to add crop. Please try again.",
           variant: "destructive",
         })
       }

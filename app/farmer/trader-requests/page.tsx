@@ -8,6 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, User, Phone, MapPin, Package, IndianRupee, Calendar } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 interface TraderRequest {
   id: string
@@ -27,6 +38,10 @@ export default function TraderRequestsPage() {
   const { user } = useAuthContext()
   const { t } = useLanguage()
   const [requests, setRequests] = useState<TraderRequest[]>([])
+  const { toast } = useToast()
+  const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
+  const [actionType, setActionType] = useState<"accept" | "decline" | null>(null)
+  const [processing, setProcessing] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,33 +54,87 @@ export default function TraderRequestsPage() {
 
   const fetchTraderRequests = async () => {
     try {
-      const response = await fetch("/api/farmer/trader-requests")
-      const data = await response.json()
-      if (data.success) {
-        setRequests(data.data)
+      // @ts-ignore - User type definition might be incomplete
+      const userId = user?.id || user?.sub
+      if (!userId) {
+        setLoading(false)
+        return
       }
+
+      const response = await fetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}`)
+      // Note: Backend returns list directly, not {success, data} wrapper based on schemas seen
+      if (!response.ok) throw new Error("Failed to fetch")
+
+      const data = await response.json()
+      // Mapping backend snake_case to frontend camelCase if needed, or using as is if matched.
+      // Backend returns TraderRequestWithDetails with snake_case fields (e.g. dhalari_name).
+      // Frontend interface expects camelCase (dhalariName).
+      // Need to map.
+      const mappedData = data.map((item: any) => ({
+        id: item.id,
+        dhalariName: item.dhalari_name,
+        dhalariPhone: item.dhalari_phone,
+        dhalariLocation: "Unknown", // Backend doesn't send location in current schema
+        cropName: item.crop_name,
+        requestedQuantity: item.requested_quantity,
+        offeredPrice: item.offered_price,
+        status: item.status,
+        requestDate: item.created_at,
+        message: item.message
+      }))
+      setRequests(mappedData)
     } catch (error) {
       console.error("Error fetching requests:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load requests",
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleAccept = async (requestId: string) => {
-    try {
-      await fetch(`/api/farmer/trader-requests/${requestId}/accept`, { method: "POST" })
-      fetchTraderRequests()
-    } catch (error) {
-      console.error("Error accepting request:", error)
-    }
+  const confirmAction = (id: string, type: "accept" | "decline") => {
+    setSelectedRequest(id)
+    setActionType(type)
   }
 
-  const handleDecline = async (requestId: string) => {
+  const handleAction = async () => {
+    if (!selectedRequest || !actionType) return
+
+    setProcessing(true)
     try {
-      await fetch(`/api/farmer/trader-requests/${requestId}/decline`, { method: "POST" })
+      const token = localStorage.getItem("auth-token")
+      const status = actionType === "accept" ? "accepted" : "declined"
+      const response = await fetch(`http://127.0.0.1:8000/api/trader-requests/${selectedRequest}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      })
+
+      if (!response.ok) throw new Error("Failed into update")
+
+      toast({
+        title: "Success",
+        description: `Request ${actionType}ed successfully`
+      })
+
       fetchTraderRequests()
     } catch (error) {
-      console.error("Error declining request:", error)
+      console.error("Error updating request:", error)
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive"
+      })
+    } finally {
+      setProcessing(false)
+      setSelectedRequest(null)
+      setActionType(null)
     }
   }
 
@@ -153,14 +222,14 @@ export default function TraderRequestsPage() {
                   <div className="flex gap-3">
                     <Button
                       className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => handleAccept(request.id)}
+                      onClick={() => confirmAction(request.id, "accept")}
                     >
                       {t("common.accept")}
                     </Button>
                     <Button
                       variant="outline"
                       className="flex-1 bg-transparent"
-                      onClick={() => handleDecline(request.id)}
+                      onClick={() => confirmAction(request.id, "decline")}
                     >
                       {t("common.decline")}
                     </Button>
@@ -178,6 +247,29 @@ export default function TraderRequestsPage() {
           </div>
         )}
       </main>
+
+      <AlertDialog open={!!selectedRequest} onOpenChange={(open: boolean) => !open && setSelectedRequest(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {actionType === "accept"
+                ? "You are about to accept this deal. This action cannot be undone."
+                : "You are about to decline this request."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e: React.MouseEvent) => { e.preventDefault(); handleAction(); }}
+              disabled={processing}
+              className={actionType === "accept" ? "bg-emerald-600" : "bg-red-600"}
+            >
+              {processing ? "Processing..." : actionType === "accept" ? "Confirm Accept" : "Confirm Decline"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -52,13 +52,32 @@ export default function MyCropsPage() {
 
   const fetchMyCrops = async () => {
     try {
-      const response = await fetch(`/api/crops/my-crops?farmerId=${user?.id}`)
+      // @ts-ignore
+      const userId = user?.id || user?.sub
+      const response = await fetch(`http://127.0.0.1:8000/api/crops/farmer/${userId}`)
+      if (!response.ok) throw new Error("Failed to fetch")
+
       const data = await response.json()
-      if (data.success) {
-        setCrops(data.data)
-      }
+      // Map backend fields to frontend interface
+      const mappedCrops = data.map((crop: any) => ({
+        id: crop.id,
+        cropName: crop.name,
+        quantity: crop.quantity,
+        pricePerKg: crop.expected_price,
+        location: crop.location,
+        status: crop.status || "available",
+        description: crop.description,
+        createdAt: crop.created_at,
+        farmerPhone: crop.farmer_phone
+      }))
+      setCrops(mappedCrops)
     } catch (error) {
       console.error("[v0] Error fetching crops:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load crops",
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
@@ -79,10 +98,20 @@ export default function MyCropsPage() {
     if (!editingCrop) return
 
     try {
-      const response = await fetch(`/api/crops/${editingCrop.id}`, {
+      const token = localStorage.getItem("auth-token")
+      const response = await fetch(`http://127.0.0.1:8000/api/crops/${editingCrop.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editForm.cropName,
+          quantity: parseFloat(editForm.quantity),
+          expected_price: parseFloat(editForm.pricePerKg),
+          location: editForm.location,
+          description: editForm.description
+        }),
       })
 
       if (response.ok) {
@@ -108,8 +137,12 @@ export default function MyCropsPage() {
     if (!confirm("Are you sure you want to delete this crop listing?")) return
 
     try {
-      const response = await fetch(`/api/crops/${cropId}`, {
+      const token = localStorage.getItem("auth-token")
+      const response = await fetch(`http://127.0.0.1:8000/api/crops/${cropId}`, {
         method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       })
 
       if (response.ok) {

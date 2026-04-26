@@ -1,260 +1,288 @@
 "use client"
 
-import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/auth-context"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, Save, X, Edit2, Briefcase, MapPin, Star } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { ProfileHeader, ProfileStats, ContactInfo } from "@/components/ui/modern-profile"
+import { authFetch } from "@/lib/auth-utils"
 
 export default function DhalariProfile() {
   const router = useRouter()
   const { user } = useAuthContext()
+  const { toast } = useToast()
 
+  const [profile, setProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
-    businessName: "Sharma Agricultural Traders",
+    businessName: "",
     email: "",
-    phone: "", // Changed to empty string for editing
-    location: "Mumbai, Maharashtra",
-    district: "", // Added district field
-    state: "", // Added state field
-    specializations: ["Wheat", "Rice", "Cotton"], // Made specializations editable array
-    commissionRate: "5", // Added commission rate
+    phone: "",
+    location: "",
+    specializations: [] as string[],
   })
-
   const [newSpecialization, setNewSpecialization] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveMessage, setSaveMessage] = useState("")
 
   useEffect(() => {
-    if (!user || user.type !== "dhalari") {
+    if (user && user.type === "dhalari") {
+      fetchProfile()
+    } else if (user && user.type !== "dhalari") {
       router.push("/")
-    }
-    if (user?.email) {
-      setFormData((prev) => ({ ...prev, email: user.email }))
     }
   }, [user, router])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSaveChanges = async () => {
-    setIsSaving(true)
-    setSaveMessage("")
-
+  const fetchProfile = async () => {
+    setIsLoading(true)
     try {
-      // Simulate API call
-      const response = await fetch("/api/dhalari/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const dhalariId = user?.id
+      const token = localStorage.getItem("auth-token")
+
+      const response = await fetch(`http://127.0.0.1:8000/api/dhalaris/${dhalariId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
       })
 
       if (response.ok) {
-        setSaveMessage("Profile updated successfully!")
-        setTimeout(() => setSaveMessage(""), 3000)
-      } else {
-        setSaveMessage("Failed to save changes. Please try again.")
+        const data = await response.json()
+        setProfile(data)
+        setFormData({
+          businessName: data.business_name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          location: data.location || "",
+          specializations: data.specialization || [],
+        })
       }
     } catch (error) {
-      console.log("[v0] Save error:", error)
-      setSaveMessage("Error saving profile. Please try again.")
+      console.error("Failed to fetch profile", error)
     } finally {
-      setIsSaving(false)
+      setIsLoading(false)
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      <header className="border-b border-blue-100 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">My Profile</h1>
-        </div>
-      </header>
+  const handleAddSpecialization = () => {
+    if (newSpecialization && !formData.specializations.includes(newSpecialization)) {
+      setFormData(prev => ({
+        ...prev,
+        specializations: [...prev.specializations, newSpecialization]
+      }))
+      setNewSpecialization("")
+    }
+  }
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  const handleRemoveSpecialization = (specToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specializations: prev.specializations.filter(s => s !== specToRemove)
+    }))
+  }
+
+  const handleSaveChanges = async () => {
+    if (!user) return
+    try {
+      const dhalariId = user.id
+
+      const payload = {
+        business_name: formData.businessName,
+        phone: formData.phone,
+        location: formData.location,
+        specialization: formData.specializations
+      }
+
+      const response = await authFetch(`http://127.0.0.1:8000/api/dhalaris/${dhalariId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (response.ok) {
+        toast({ title: "Success!", description: "Profile updated successfully" })
+        const updatedData = await response.json()
+        setProfile(updatedData)
+        setEditing(false)
+      } else {
+        const err = await response.json()
+        toast({ title: "Error", description: err.detail || "Failed to save", variant: "destructive" })
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" })
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  const joinDate = profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Recently";
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-6 gap-2 hover:bg-white/50">
+          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        </Button>
+
+        {/* Profile Header */}
+        <ProfileHeader
+          name={profile?.name || "Dhalari"}
+          type="Dhalari"
+          location={profile?.location || "Location not set"}
+          joinDate={joinDate}
+          isVerified={profile?.verified}
+        />
+
+        {/* Stats Section */}
+        <ProfileStats
+          successRate={profile?.success_rate || 0}
+          totalDeals={profile?.total_deals || 0}
+          rating={profile?.rating || 0}
+        />
+
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
+          {/* Left Column: Contact info */}
+          <div className="md:col-span-1 space-y-6">
+            <ContactInfo
+              phone={profile?.phone}
+              email={profile?.email}
+              isConnected={true} // User viewing their own profile
+            />
+
             <Card>
               <CardHeader>
-                <CardTitle>Business Information</CardTitle>
+                <CardTitle className="text-sm font-medium">Business Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
-                  <input
-                    type="text"
-                    name="businessName"
-                    value={formData.businessName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="text-sm text-gray-500 mb-1">Company Name</div>
+                  <div className="font-medium flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-blue-600" />
+                    {profile?.business_name || "N/A"}
+                  </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="+91 9876543210"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="text-sm text-gray-500 mb-1">Commission Rate</div>
+                  <div className="font-medium">{profile?.commission || 5}%</div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
-                  <input
-                    type="text"
-                    name="district"
-                    value={formData.district}
-                    onChange={handleInputChange}
-                    placeholder="Mumbai"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    placeholder="Maharashtra"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Commission Rate (%)</label>
-                  <input
-                    type="number"
-                    name="commissionRate"
-                    value={formData.commissionRate}
-                    onChange={handleInputChange}
-                    min="0"
-                    max="100"
-                    step="0.5"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={isSaving}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400"
-                  >
-                    {isSaving ? "Saving..." : "Save Changes"}
-                  </Button>
-                  {saveMessage && (
-                    <p
-                      className={`text-sm text-center ${saveMessage.includes("successfully") ? "text-emerald-600" : "text-red-600"}`}
-                    >
-                      {saveMessage}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Crop Specializations</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {formData.specializations.map((crop) => (
-                    <div key={crop} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                      {crop}
-                    </div>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Add new specialization"
-                  value={newSpecialization}
-                  onChange={(e) => setNewSpecialization(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
               </CardContent>
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Verification Status</CardTitle>
+          {/* Right Column: Edit Form or Public View */}
+          <div className="md:col-span-2">
+            <Card className="h-full">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Profile Details</CardTitle>
+                <Button
+                  variant={editing ? "ghost" : "outline"}
+                  onClick={() => editing ? setEditing(false) : setEditing(true)}
+                  className="gap-2"
+                >
+                  {editing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                  {editing ? "Cancel" : "Edit Profile"}
+                </Button>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Email Verified</span>
-                  <span className="text-emerald-600 font-semibold">✓</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Phone Verified</span>
-                  <span className="text-emerald-600 font-semibold">✓</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">KYC Verified</span>
-                  <span className="text-blue-600 font-semibold">Pending</span>
-                </div>
-              </CardContent>
-            </Card>
+              <CardContent>
+                {editing ? (
+                  <div className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-4">
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Rating</span>
-                  <span className="font-semibold">4.8/5.0</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Success Rate</span>
-                  <span className="font-semibold">94%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Deals</span>
-                  <span className="font-semibold">156</span>
-                </div>
+                      <div className="space-y-2">
+                        <Label>Business Name</Label>
+                        <Input
+                          value={formData.businessName}
+                          onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Location</Label>
+                        <Input
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        <Input
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Specializations</Label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {formData.specializations.map((spec) => (
+                            <Badge key={spec} className="gap-1 pr-1 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                              {spec}
+                              <button onClick={() => handleRemoveSpecialization(spec)} className="ml-1 hover:text-red-600">×</button>
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newSpecialization}
+                            onChange={(e) => setNewSpecialization(e.target.value)}
+                            placeholder="Add crop type (e.g. Cotton)"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddSpecialization()}
+                          />
+                          <Button type="button" variant="outline" onClick={handleAddSpecialization}>Add</Button>
+                        </div>
+                      </div>
+                    </div>
+                    <Button onClick={handleSaveChanges} className="w-full bg-blue-600 hover:bg-blue-700">
+                      <Save className="w-4 h-4 mr-2" /> Save Changes
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">Specializations & Crops</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {profile?.specialization && profile.specialization.length > 0 ? (
+                          profile.specialization.map((spec: string) => (
+                            <Badge key={spec} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {spec}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-gray-500 italic">No specializations listed</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                      <div>
+                        <div className="text-sm text-gray-500">Location</div>
+                        <div className="font-medium flex items-center gap-1">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          {profile?.location || "Not specified"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Rating</div>
+                        <div className="font-medium flex items-center gap-1">
+                          <Star className="w-4 h-4 text-amber-500" />
+                          {profile?.rating?.toFixed(1) || "0.0"} / 5.0
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

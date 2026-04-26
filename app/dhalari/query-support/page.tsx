@@ -73,12 +73,12 @@ export default function QuerySupportPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Button variant="ghost" onClick={() => router.back()} className="mb-6 gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t("market.back")}
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Query & Support</h1>
-          <p className="text-gray-600">Get help with your questions or report issues</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("support.queryAndSupport")}</h1>
+          <p className="text-gray-600">{t("support.getHelp")}</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -88,54 +88,54 @@ export default function QuerySupportPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <HelpCircle className="w-5 h-5 text-blue-600" />
-                  Submit a Query
+                  {t("support.submitQuery")}
                 </CardTitle>
-                <CardDescription>Fill out the form below and we'll get back to you soon</CardDescription>
+                <CardDescription>{t("support.fillForm")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label>Query Category *</Label>
+                    <Label>{t("support.queryCategory")}</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(val) => setFormData({ ...formData, category: val })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder={t("support.selectCategory")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="technical">Technical Issue</SelectItem>
-                        <SelectItem value="payment">Payment Related</SelectItem>
-                        <SelectItem value="crop">Crop Information</SelectItem>
-                        <SelectItem value="farmer">Farmer Contact</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="technical">{t("support.technicalIssue")}</SelectItem>
+                        <SelectItem value="payment">{t("support.paymentRelated")}</SelectItem>
+                        <SelectItem value="crop">{t("support.cropInformation")}</SelectItem>
+                        <SelectItem value="farmer">{t("support.farmerContact")}</SelectItem>
+                        <SelectItem value="other">{t("support.other")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label>Subject *</Label>
+                    <Label>{t("support.subject")}</Label>
                     <Input
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      placeholder="Brief description of your issue"
+                      placeholder={t("support.subjectPlaceholder")}
                       required
                     />
                   </div>
 
                   <div>
-                    <Label>Description *</Label>
+                    <Label>{t("support.description")}</Label>
                     <Textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Describe your query in detail..."
+                      placeholder={t("support.descriptionPlaceholder")}
                       rows={6}
                       required
                     />
                   </div>
 
                   <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700">
-                    {loading ? "Submitting..." : "Submit Query"}
+                    {loading ? t("support.submitting") : t("support.submitQueryBtn")}
                   </Button>
                 </form>
               </CardContent>
@@ -144,20 +144,20 @@ export default function QuerySupportPage() {
             {/* Contact Information */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Contact Support</CardTitle>
+                <CardTitle>{t("support.contactSupport")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                   <Phone className="w-5 h-5 text-blue-600" />
                   <div>
-                    <p className="font-medium">Phone Support</p>
+                    <p className="font-medium">{t("support.phoneSupport")}</p>
                     <p className="text-sm text-gray-600">+91 1800-123-4567</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
                   <Mail className="w-5 h-5 text-emerald-600" />
                   <div>
-                    <p className="font-medium">Email Support</p>
+                    <p className="font-medium">{t("support.emailSupport")}</p>
                     <p className="text-sm text-gray-600">support@agriconnect.com</p>
                   </div>
                 </div>
@@ -176,34 +176,33 @@ export default function QuerySupportPage() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Platform Instructions</CardTitle>
-                <CardDescription>Quick guide to using AgriConnect as a trader</CardDescription>
+                <CardTitle>{t("support.platformInstructions")}</CardTitle>
+                <CardDescription>{t("support.quickGuide")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 rounded-lg">
-                    <h3 className="font-semibold mb-2">1. Browse Available Crops</h3>
+                    <h3 className="font-semibold mb-2">{t("support.browseAvailCrops")}</h3>
                     <p className="text-sm text-gray-600">
-                      Go to "View Requests" to see all crop listings from farmers with details like quantity, price, and
-                      location.
+                      {t("support.browseAvailCropsDesc")}
                     </p>
                   </div>
                   <div className="p-4 bg-emerald-50 rounded-lg">
-                    <h3 className="font-semibold mb-2">2. Accept Deals</h3>
+                    <h3 className="font-semibold mb-2">{t("support.acceptDeals")}</h3>
                     <p className="text-sm text-gray-600">
-                      Click "Accept" on any listing to finalize the deal. You'll earn 5% commission on the total value.
+                      {t("support.acceptDealsDesc")}
                     </p>
                   </div>
                   <div className="p-4 bg-amber-50 rounded-lg">
-                    <h3 className="font-semibold mb-2">3. Send Crop Requests</h3>
+                    <h3 className="font-semibold mb-2">{t("support.sendCropRequests")}</h3>
                     <p className="text-sm text-gray-600">
-                      Use "Send Crop Request" to tell farmers what crops you're looking for. Farmers will be notified.
+                      {t("support.sendCropRequestsDesc")}
                     </p>
                   </div>
                   <div className="p-4 bg-purple-50 rounded-lg">
-                    <h3 className="font-semibold mb-2">4. Track Earnings</h3>
+                    <h3 className="font-semibold mb-2">{t("support.trackEarnings")}</h3>
                     <p className="text-sm text-gray-600">
-                      View your analytics and earnings breakdown in the dashboard and analytics sections.
+                      {t("support.trackEarningsDesc")}
                     </p>
                   </div>
                 </div>
@@ -212,42 +211,38 @@ export default function QuerySupportPage() {
 
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Frequently Asked Questions</CardTitle>
+                <CardTitle>{t("support.faq")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Accordion type="single" collapsible>
                   <AccordionItem value="q1">
-                    <AccordionTrigger>How do I contact farmers?</AccordionTrigger>
+                    <AccordionTrigger>{t("support.faq1q")}</AccordionTrigger>
                     <AccordionContent>
-                      Each crop listing shows the farmer's phone number. You can call or WhatsApp them directly to
-                      discuss the deal details.
+                      {t("support.faq1a")}
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="q2">
-                    <AccordionTrigger>What is the commission rate?</AccordionTrigger>
+                    <AccordionTrigger>{t("support.faq2q")}</AccordionTrigger>
                     <AccordionContent>
-                      You earn 5% commission on every deal you accept. For example, on a ₹100,000 deal, you earn ₹5,000.
+                      {t("support.faq2a")}
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="q3">
-                    <AccordionTrigger>How do I get paid?</AccordionTrigger>
+                    <AccordionTrigger>{t("support.faq3q")}</AccordionTrigger>
                     <AccordionContent>
-                      Earnings are tracked automatically. Set up your bank details in your profile to receive direct
-                      transfers at the end of each month.
+                      {t("support.faq3a")}
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="q4">
-                    <AccordionTrigger>Can I decline a deal after accepting?</AccordionTrigger>
+                    <AccordionTrigger>{t("support.faq4q")}</AccordionTrigger>
                     <AccordionContent>
-                      Once accepted, deals are finalized. Please contact support immediately if you need to cancel due
-                      to exceptional circumstances.
+                      {t("support.faq4a")}
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="q5">
-                    <AccordionTrigger>How do I update my profile?</AccordionTrigger>
+                    <AccordionTrigger>{t("support.faq5q")}</AccordionTrigger>
                     <AccordionContent>
-                      Go to "My Profile" in the quick actions section to edit your business information, crop
-                      specializations, and contact details.
+                      {t("support.faq5a")}
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>

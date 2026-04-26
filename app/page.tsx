@@ -8,17 +8,36 @@ import { Sprout, TrendingUp, MessageSquare, Users, ArrowRight } from "lucide-rea
 
 export default function Home() {
   const router = useRouter()
-  const { user } = useAuthContext()
+  const { user, isLoading } = useAuthContext()
 
   useEffect(() => {
-    if (user) {
+    // Only redirect AFTER loading is complete and we know user state
+    if (!isLoading && user) {
       if (user.type === "farmer") {
-        router.push("/farmer/dashboard")
+        router.replace("/farmer/dashboard")
       } else {
-        router.push("/dhalari/dashboard")
+        router.replace("/dhalari/dashboard")
       }
     }
-  }, [user, router])
+  }, [user, isLoading, router])
+
+  // Show loading while auth context is hydrating
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
+
+  // Show redirecting message if logged in
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Redirecting to dashboard...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -38,7 +57,7 @@ export default function Home() {
               Farmer Login
             </Button>
             <Button onClick={() => router.push("/auth/dhalari")} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Dhalari Login
+              Trader Login
             </Button>
           </div>
         </div>
@@ -122,7 +141,7 @@ export default function Home() {
               <TrendingUp className="w-6 h-6 text-blue-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Market Prices</h3>
-            <p className="text-gray-600">Real-time market data and price predictions to maximize your profits.</p>
+            <p className="text-gray-600">Real-time market data and insights to maximize your profits.</p>
           </div>
           <div className="bg-white rounded-xl p-8 border border-gray-100 hover:shadow-lg transition-shadow">
             <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">

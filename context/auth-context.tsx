@@ -15,13 +15,14 @@ interface AuthContextType {
   login: (userData: User) => void
   logout: () => void
   isAuthenticated: boolean
+  isLoading: boolean  // Added loading state
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [mounted, setMounted] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)  // Start as loading
 
   useEffect(() => {
     const saved = localStorage.getItem("auth-user")
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Failed to load auth user")
       }
     }
-    setMounted(true)
+    setIsLoading(false)  // Done loading
   }, [])
 
   const login = (userData: User) => {
@@ -43,14 +44,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem("auth-user")
+    localStorage.removeItem("auth-token")
     localStorage.removeItem("chat-farmer")
     localStorage.removeItem("chat-dhalari")
   }
 
-  if (!mounted) return null
+  // Don't render children until we've checked localStorage
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading }}>{children}</AuthContext.Provider>
   )
 }
 
@@ -61,3 +70,4 @@ export function useAuthContext() {
   }
   return context
 }
+

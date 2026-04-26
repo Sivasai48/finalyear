@@ -20,8 +20,11 @@ export default function EarningsBreakdown() {
   const router = useRouter()
   const { user } = useAuthContext()
   const { t } = useLanguage()
-  const [monthlyEarnings, setMonthlyEarnings] = useState<MonthlyEarning[]>([])
-  const [totalEarnings, setTotalEarnings] = useState(0)
+  const [monthlyEarnings, setMonthlyEarnings] = useState<any[]>([])
+  const [stats, setStats] = useState({
+    totalValue: 0,
+    acceptedDeals: 0
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -30,19 +33,31 @@ export default function EarningsBreakdown() {
       return
     }
 
-    fetchEarnings()
+    fetchAnalyticsData()
   }, [user, router])
 
-  const fetchEarnings = async () => {
+  const fetchAnalyticsData = async () => {
     try {
-      const response = await fetch(`/api/dhalari/earnings?dhalariId=${user?.id || "dhalari-001"}`)
-      const data = await response.json()
-      if (data.success) {
-        setMonthlyEarnings(data.data.monthly)
-        setTotalEarnings(data.data.total)
+      if (!user?.id) return
+      
+      // Fetch total analytics
+      const analyticsRes = await fetch(`http://127.0.0.1:8000/api/dhalaris/${user.id}/analytics`)
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json()
+        setStats({
+          totalValue: analyticsData.total_value,
+          acceptedDeals: analyticsData.accepted_requests
+        })
+      }
+
+      // Fetch monthly performance
+      const monthlyRes = await fetch(`http://127.0.0.1:8000/api/dhalaris/${user.id}/monthly-performance`)
+      if (monthlyRes.ok) {
+        const monthlyData = await monthlyRes.json()
+        setMonthlyEarnings(monthlyData.months || [])
       }
     } catch (error) {
-      console.error("[v0] Error fetching earnings:", error)
+      console.error("[v0] Error fetching performance data:", error)
     } finally {
       setLoading(false)
     }
@@ -56,57 +71,57 @@ export default function EarningsBreakdown() {
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Earnings Breakdown</h1>
+            <h1 className="text-2xl font-bold">{t("dhalari.totalEarnings")} Breakdown</h1>
           </div>
           <LanguageSelector />
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="mb-8">
+        <Card className="mb-8 bg-gradient-to-br from-blue-50 to-white border-blue-200">
           <CardHeader>
-            <CardTitle>Total Earnings</CardTitle>
+            <CardTitle className="text-blue-800">{t("dhalari.totalEarnings")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <IndianRupee className="w-8 h-8 text-emerald-600" />
-              <span className="text-4xl font-bold text-emerald-600">
-                {loading ? "..." : `₹${totalEarnings.toLocaleString()}`}
+              <IndianRupee className="w-8 h-8 text-blue-600" />
+              <span className="text-4xl font-bold text-blue-800">
+                {loading ? "..." : `₹${(stats.totalValue / 1000).toFixed(1)}K`}
               </span>
             </div>
-            <p className="text-sm text-gray-600 mt-2">Total commission earned from all deals</p>
+            <p className="text-sm text-blue-600 mt-2">Total amount spent on accepted crop deals</p>
           </CardContent>
         </Card>
 
-        <h2 className="text-xl font-semibold mb-4">Monthly Breakdown</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Monthly Spending Summary</h2>
         {loading ? (
           <div className="text-center py-12">Loading...</div>
         ) : monthlyEarnings.length === 0 ? (
           <div className="text-center py-12">
             <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No earnings yet</p>
+            <p className="text-gray-500">No spending history yet</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {monthlyEarnings.map((item, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="hover:shadow-lg transition-shadow border-gray-100 italic">
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">
-                        {item.month} {item.year}
+                      <h3 className="font-semibold text-lg text-gray-900">
+                        {item.month_name} {item.year}
                       </h3>
-                      <IndianRupee className="w-5 h-5 text-amber-600" />
+                      <IndianRupee className="w-5 h-5 text-blue-500" />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Deals Completed:</span>
-                        <span className="font-semibold">{item.deals}</span>
+                        <span className="text-gray-600">{t("stats.deals")}:</span>
+                        <span className="font-semibold">{item.deal_count}</span>
                       </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span className="text-gray-600">Earnings:</span>
-                        <span className="font-bold text-emerald-600">₹{item.earnings.toLocaleString()}</span>
+                      <div className="flex justify-between border-t border-gray-100 pt-2">
+                        <span className="text-gray-600">Spent:</span>
+                        <span className="font-bold text-blue-700">₹{(item.total_value).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>

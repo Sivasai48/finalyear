@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, User, MapPin, Phone, Star, Search, Briefcase } from "lucide-react"
+import { ProfileDialog } from "@/components/profile-dialog"
 
 export default function TradersDirectory() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function TradersDirectory() {
   const [filteredTraders, setFilteredTraders] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
+  const [viewProfileUser, setViewProfileUser] = useState<any>(null)
 
   useEffect(() => {
     fetchTraders()
@@ -36,13 +38,19 @@ export default function TradersDirectory() {
 
   const fetchTraders = async () => {
     try {
-      const response = await fetch("/api/dhalari/all")
-      const data = await response.json()
+      const response = await fetch("http://127.0.0.1:8000/api/dhalaris")
+      // Using 127.0.0.1 for reliable local connection
 
-      if (data.success) {
-        setTraders(data.data)
-        setFilteredTraders(data.data)
+      let data
+      if (response.ok) {
+        data = await response.json()
+        setTraders(data)
+        setFilteredTraders(data)
+      } else {
+        // Fallback to old path if that was working? No, stick to new standard.
+        console.error("Failed to fetch traders")
       }
+
     } catch (error) {
       console.error("[v0] Error fetching traders:", error)
     } finally {
@@ -85,11 +93,19 @@ export default function TradersDirectory() {
             {filteredTraders.map((trader) => (
               <Card key={trader.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div
+                    className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-200"
+                    onClick={() => setViewProfileUser(trader)}
+                  >
                     <User className="w-8 h-8 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">{trader.name}</h3>
+                    <h3
+                      className="font-bold text-lg cursor-pointer hover:underline"
+                      onClick={() => setViewProfileUser(trader)}
+                    >
+                      {trader.name}
+                    </h3>
                     {trader.verified && <Badge className="mt-1 bg-blue-600 text-xs">Verified</Badge>}
                   </div>
                 </div>
@@ -117,7 +133,7 @@ export default function TradersDirectory() {
                 <div className="mb-4">
                   <p className="text-xs text-gray-500 mb-2">Specializes in:</p>
                   <div className="flex flex-wrap gap-1">
-                    {trader.specialization.map((spec: string) => (
+                    {trader.specialization && trader.specialization.map((spec: string) => (
                       <Badge key={spec} variant="outline" className="text-xs bg-blue-50">
                         {spec}
                       </Badge>
@@ -137,6 +153,13 @@ export default function TradersDirectory() {
             ))}
           </div>
         )}
+
+        <ProfileDialog
+          open={!!viewProfileUser}
+          onOpenChange={(open) => !open && setViewProfileUser(null)}
+          user={viewProfileUser}
+          type="dhalari"
+        />
       </div>
     </div>
   )
