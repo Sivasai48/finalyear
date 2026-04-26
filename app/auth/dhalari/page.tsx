@@ -23,7 +23,7 @@ export default function DhalariAuth() {
     setLoading(true)
     setError("")
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/auth/google-login", {
+      const response = await fetch("http://localhost:8000/api/auth/google-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

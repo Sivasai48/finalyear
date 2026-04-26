@@ -48,7 +48,7 @@ export default function FarmerContactRequests() {
             }
 
             // Fetch all requests for this farmer
-            const response = await authFetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}`)
+            const response = await authFetch(`http://localhost:8000/api/trader-requests/farmer/${userId}`)
             if (!response.ok) throw new Error("Failed to fetch")
 
             const data = await response.json()
@@ -74,7 +74,7 @@ export default function FarmerContactRequests() {
             setReceivedRequests(received)
 
             // Fetch sent requests - contact requests farmer sent to dhalaris
-            const sentResponse = await authFetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}/sent`)
+            const sentResponse = await authFetch(`http://localhost:8000/api/trader-requests/farmer/${userId}/sent`)
             if (sentResponse.ok) {
                 const sentData = await sentResponse.json()
                 const sent = sentData.map((item: any) => ({
@@ -113,7 +113,7 @@ export default function FarmerContactRequests() {
         }
 
         try {
-            const response = await authFetch(`http://127.0.0.1:8000/api/trader-requests/${selectedReqId}`, {
+            const response = await authFetch(`http://localhost:8000/api/trader-requests/${selectedReqId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

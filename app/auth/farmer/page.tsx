@@ -32,7 +32,7 @@ export default function FarmerAuth() {
 
     setLoading(true)
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/auth/farmer-login", {
+      const response = await fetch("http://localhost:8000/api/auth/farmer-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "send-otp", phone: phone }),
@@ -68,7 +68,7 @@ export default function FarmerAuth() {
     setLoading(true)
     try {
       // Call Python Backend
-      const response = await fetch("http://127.0.0.1:8000/api/auth/farmer-login", {
+      const response = await fetch("http://localhost:8000/api/auth/farmer-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Send raw phone (10 digits expected by backend logic we wrote, or whatever input has)

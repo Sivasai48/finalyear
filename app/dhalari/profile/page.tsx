@@ -44,7 +44,7 @@ export default function DhalariProfile() {
       const dhalariId = user?.id
       const token = localStorage.getItem("auth-token")
 
-      const response = await fetch(`http://127.0.0.1:8000/api/dhalaris/${dhalariId}`, {
+      const response = await fetch(`http://localhost:8000/api/dhalaris/${dhalariId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
 
@@ -95,7 +95,7 @@ export default function DhalariProfile() {
         specialization: formData.specializations
       }
 
-      const response = await authFetch(`http://127.0.0.1:8000/api/dhalaris/${dhalariId}`, {
+      const response = await authFetch(`http://localhost:8000/api/dhalaris/${dhalariId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

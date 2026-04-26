@@ -61,7 +61,7 @@ export default function TraderRequestsPage() {
         return
       }
 
-      const response = await fetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}`)
+      const response = await fetch(`http://localhost:8000/api/trader-requests/farmer/${userId}`)
       // Note: Backend returns list directly, not {success, data} wrapper based on schemas seen
       if (!response.ok) throw new Error("Failed to fetch")
 
@@ -107,7 +107,7 @@ export default function TraderRequestsPage() {
     try {
       const token = localStorage.getItem("auth-token")
       const status = actionType === "accept" ? "accepted" : "declined"
-      const response = await fetch(`http://127.0.0.1:8000/api/trader-requests/${selectedRequest}`, {
+      const response = await fetch(`http://localhost:8000/api/trader-requests/${selectedRequest}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

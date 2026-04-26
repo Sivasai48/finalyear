@@ -39,7 +39,7 @@ export default function FarmerProfile() {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("No auth token found")
 
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${user?.id}`, { // Fetch by ID specifically to get stats
+      const response = await fetch(`http://localhost:8000/api/farmers/${user?.id}`, { // Fetch by ID specifically to get stats
         headers: { "Authorization": `Bearer ${token}` }
       })
 
@@ -74,7 +74,7 @@ export default function FarmerProfile() {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("auth-token")
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${user?.id}`, {
+      const response = await fetch(`http://localhost:8000/api/farmers/${user?.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

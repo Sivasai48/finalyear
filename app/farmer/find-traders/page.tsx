@@ -77,7 +77,7 @@ export default function FindTradersPage() {
 
     const fetchDhalaris = async () => {
         try {
-            const response = await authFetch("http://127.0.0.1:8000/api/dhalaris")
+            const response = await authFetch("http://localhost:8000/api/dhalaris")
             if (response.ok) {
                 const data = await response.json()
                 setDhalaris(data)
@@ -125,7 +125,7 @@ export default function FindTradersPage() {
 
             // Also send via API for backend tracking
             try {
-                await authFetch("http://127.0.0.1:8000/api/trader-requests", {
+                await authFetch("http://localhost:8000/api/trader-requests", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

@@ -38,7 +38,7 @@ export default function TradersDirectory() {
 
   const fetchTraders = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/dhalaris")
+      const response = await fetch("http://localhost:8000/api/dhalaris")
       // Using 127.0.0.1 for reliable local connection
 
       let data

@@ -71,7 +71,7 @@ export default function FindFarmersPage() {
 
   const fetchFarmers = async () => {
     try {
-      const response = await authFetch("http://127.0.0.1:8000/api/farmers")
+      const response = await authFetch("http://localhost:8000/api/farmers")
       if (!response.ok) throw new Error("Failed to fetch farmers")
       const data = await response.json()
       setFarmers(data)
@@ -123,7 +123,7 @@ export default function FindFarmersPage() {
 
       // Also send via API for backend tracking (best-effort)
       try {
-        await authFetch("http://127.0.0.1:8000/api/trader-requests", {
+        await authFetch("http://localhost:8000/api/trader-requests", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

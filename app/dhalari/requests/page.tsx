@@ -40,7 +40,7 @@ export default function DhalariCropRequests() {
       if (!userId) return
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/trader-requests/dhalari/${userId}`)
+        const response = await fetch(`http://localhost:8000/api/trader-requests/dhalari/${userId}`)
         if (!response.ok) throw new Error("Failed to fetch")
         const data = await response.json()
         // Filter only crop_deal requests (sent by dhalari to farmers)

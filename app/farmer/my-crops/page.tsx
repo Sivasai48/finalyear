@@ -54,7 +54,7 @@ export default function MyCropsPage() {
     try {
       // @ts-ignore
       const userId = user?.id || user?.sub
-      const response = await fetch(`http://127.0.0.1:8000/api/crops/farmer/${userId}`)
+      const response = await fetch(`http://localhost:8000/api/crops/farmer/${userId}`)
       if (!response.ok) throw new Error("Failed to fetch")
 
       const data = await response.json()
@@ -99,7 +99,7 @@ export default function MyCropsPage() {
 
     try {
       const token = localStorage.getItem("auth-token")
-      const response = await fetch(`http://127.0.0.1:8000/api/crops/${editingCrop.id}`, {
+      const response = await fetch(`http://localhost:8000/api/crops/${editingCrop.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +138,7 @@ export default function MyCropsPage() {
 
     try {
       const token = localStorage.getItem("auth-token")
-      const response = await fetch(`http://127.0.0.1:8000/api/crops/${cropId}`, {
+      const response = await fetch(`http://localhost:8000/api/crops/${cropId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`

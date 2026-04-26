@@ -8,6 +8,8 @@ import { LanguageSelector } from "@/components/language-selector"
 import { NotificationsBell } from "@/components/notifications-bell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api-config"
+import { authFetch } from "@/lib/auth-utils"
 import { TrendingUp, TrendingDown, Minus, Package, IndianRupee, Users, LogOut, HelpCircle } from "lucide-react"
 
 export default function DhalariDashboard() {
@@ -39,14 +41,14 @@ export default function DhalariDashboard() {
       if (!user?.id) return
 
       // Fetch market-wide statistics
-      const marketResponse = await fetch(`http://127.0.0.1:8000/api/dhalaris/market-stats`)
+      const marketResponse = await authFetch(`${API_BASE_URL}/api/dhalaris/market-stats`)
       if (marketResponse.ok) {
         const marketData = await marketResponse.json()
         setMarketStats(marketData)
       }
 
       // Fetch personal analytics
-      const analyticsResponse = await fetch(`http://127.0.0.1:8000/api/dhalaris/${user.id}/analytics`)
+      const analyticsResponse = await authFetch(API_ENDPOINTS.DHALARIS.ANALYTICS(user.id))
       if (analyticsResponse.ok) {
         const analyticsData = await analyticsResponse.json()
         const successRate = analyticsData.total_requests > 0 
@@ -66,7 +68,7 @@ export default function DhalariDashboard() {
       }
 
       // Fetch monthly performance
-      const monthlyResponse = await fetch(`http://127.0.0.1:8000/api/dhalaris/${user.id}/monthly-performance`)
+      const monthlyResponse = await authFetch(`${API_BASE_URL}/api/dhalaris/${user.id}/monthly-performance`)
       if (monthlyResponse.ok) {
         const monthlyData = await monthlyResponse.json()
         setMonthlyPerformance(monthlyData.months || [])

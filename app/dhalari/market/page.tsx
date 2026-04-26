@@ -55,7 +55,7 @@ export default function Marketplace() {
 
   const fetchCrops = async () => {
     try {
-      const response = await authFetch("http://127.0.0.1:8000/api/crops")
+      const response = await authFetch("http://localhost:8000/api/crops")
       if (!response.ok) throw new Error("Failed to fetch")
       const data = await response.json()
       const sorted = data.reverse()
@@ -105,7 +105,7 @@ export default function Marketplace() {
       }
 
 
-      const response = await authFetch("http://127.0.0.1:8000/api/trader-requests", {
+      const response = await authFetch("http://localhost:8000/api/trader-requests", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

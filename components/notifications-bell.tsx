@@ -21,7 +21,7 @@ export function NotificationsBell({ userId, userType }: NotificationsBellProps) 
       if (!userId || userId.startsWith("dhalari-001")) return // Skip mock IDs
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/notifications/count/${userId}`)
+        const response = await fetch(`http://localhost:8000/api/notifications/count/${userId}`)
         const data = await response.json()
         if (data) {
           setUnreadCount(data.unread_count)

@@ -49,7 +49,7 @@ export default function FarmerCropRequests() {
         return
       }
 
-      const response = await authFetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}`)
+      const response = await authFetch(`http://localhost:8000/api/trader-requests/farmer/${userId}`)
       if (!response.ok) throw new Error("Failed to fetch")
 
       const data = await response.json()
@@ -93,7 +93,7 @@ export default function FarmerCropRequests() {
     }
 
     try {
-      const response = await authFetch(`http://127.0.0.1:8000/api/trader-requests/${selectedReqId}`, {
+      const response = await authFetch(`http://localhost:8000/api/trader-requests/${selectedReqId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -22,7 +22,7 @@ export function NotificationsList({ userType }: { userType: "farmer" | "dhalari"
         if (!userId) return
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/notifications/${userId}`)
+            const response = await fetch(`http://localhost:8000/api/notifications/${userId}`)
             if (!response.ok) throw new Error("Failed to fetch")
             const data = await response.json()
             setNotifications(data)
@@ -42,7 +42,7 @@ export function NotificationsList({ userType }: { userType: "farmer" | "dhalari"
     const markAsRead = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation()
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/notifications/${id}/read`, {
+            const response = await fetch(`http://localhost:8000/api/notifications/${id}/read`, {
                 method: "PUT"
             })
             if (response.ok) {
@@ -59,7 +59,7 @@ export function NotificationsList({ userType }: { userType: "farmer" | "dhalari"
         if (!userId) return
 
         try {
-            await fetch(`http://127.0.0.1:8000/api/notifications/mark-all-read/${userId}`, { method: "PUT" })
+            await fetch(`http://localhost:8000/api/notifications/mark-all-read/${userId}`, { method: "PUT" })
             setNotifications(prev => prev.map(n => ({ ...n, read: true })))
             toast({ title: "Success", description: "All notifications marked as read" })
         } catch (error) {
@@ -70,7 +70,7 @@ export function NotificationsList({ userType }: { userType: "farmer" | "dhalari"
     const deleteNotification = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation()
         try {
-            await fetch(`http://127.0.0.1:8000/api/notifications/${id}`, { method: "DELETE" })
+            await fetch(`http://localhost:8000/api/notifications/${id}`, { method: "DELETE" })
             setNotifications(prev => prev.filter(n => n.id !== id))
             toast({ title: "Deleted", description: "Notification removed" })
         } catch (error) {

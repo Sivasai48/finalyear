@@ -54,7 +54,7 @@ export default function DhalariContactRequests() {
 
         try {
             // Fetch sent contact requests (dhalari sent to farmers)
-            const sentResponse = await fetch(`http://127.0.0.1:8000/api/trader-requests/dhalari/${userId}`)
+            const sentResponse = await fetch(`http://localhost:8000/api/trader-requests/dhalari/${userId}`)
             if (sentResponse.ok) {
                 const sentData = await sentResponse.json()
                 // Filter only contact type requests sent by dhalari
@@ -72,7 +72,7 @@ export default function DhalariContactRequests() {
             }
 
             // Fetch received contact requests (farmers sent to dhalari)
-            const receivedResponse = await fetch(`http://127.0.0.1:8000/api/trader-requests/dhalari/${userId}/received`)
+            const receivedResponse = await fetch(`http://localhost:8000/api/trader-requests/dhalari/${userId}/received`)
             if (receivedResponse.ok) {
                 const receivedData = await receivedResponse.json()
                 const received = receivedData.map((item: any) => ({
@@ -111,7 +111,7 @@ export default function DhalariContactRequests() {
         }
 
         try {
-            const response = await authFetch(`http://127.0.0.1:8000/api/trader-requests/${selectedReqId}/dhalari-respond`, {
+            const response = await authFetch(`http://localhost:8000/api/trader-requests/${selectedReqId}/dhalari-respond`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

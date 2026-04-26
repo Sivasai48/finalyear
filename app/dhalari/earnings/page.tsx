@@ -41,7 +41,7 @@ export default function EarningsBreakdown() {
       if (!user?.id) return
       
       // Fetch total analytics
-      const analyticsRes = await fetch(`http://127.0.0.1:8000/api/dhalaris/${user.id}/analytics`)
+      const analyticsRes = await fetch(`http://localhost:8000/api/dhalaris/${user.id}/analytics`)
       if (analyticsRes.ok) {
         const analyticsData = await analyticsRes.json()
         setStats({
@@ -51,7 +51,7 @@ export default function EarningsBreakdown() {
       }
 
       // Fetch monthly performance
-      const monthlyRes = await fetch(`http://127.0.0.1:8000/api/dhalaris/${user.id}/monthly-performance`)
+      const monthlyRes = await fetch(`http://localhost:8000/api/dhalaris/${user.id}/monthly-performance`)
       if (monthlyRes.ok) {
         const monthlyData = await monthlyRes.json()
         setMonthlyEarnings(monthlyData.months || [])

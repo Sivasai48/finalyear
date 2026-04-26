@@ -1,0 +1,55 @@
+# Services package
+from .auth import AuthService
+from .email_service import (
+    send_email,
+    send_email_async,
+    sendEmail,
+    sendEmailSync,
+    send_dhalari_welcome_email,
+    send_dhalari_welcome_email_async,
+    send_dhalari_profile_updated_email,
+    send_dhalari_profile_updated_email_async,
+    send_deal_status_email_to_dhalari,
+    send_deal_status_email_to_dhalari_async,
+    send_contact_response_email_to_dhalari,
+    send_contact_response_email_to_dhalari_async,
+    send_farmer_profile_updated_email,
+    send_farmer_profile_updated_email_async,
+    send_new_deal_request_email_to_farmer,
+    send_new_deal_request_email_to_farmer_async,
+    send_contact_request_email_to_farmer,
+    send_contact_request_email_to_farmer_async,
+    send_crop_added_email,
+    send_crop_added_email_async,
+    send_deal_accepted_email_to_farmer,
+    send_deal_accepted_email_to_farmer_async,
+)
+
+__all__ = [
+    "AuthService",
+    # Core email functions
+    "send_email",
+    "send_email_async",
+    "sendEmail",
+    "sendEmailSync",
+    # Dhalari email functions
+    "send_dhalari_welcome_email",
+    "send_dhalari_welcome_email_async",
+    "send_dhalari_profile_updated_email",
+    "send_dhalari_profile_updated_email_async",
+    "send_deal_status_email_to_dhalari",
+    "send_deal_status_email_to_dhalari_async",
+    "send_contact_response_email_to_dhalari",
+    "send_contact_response_email_to_dhalari_async",
+    # Farmer email functions
+    "send_farmer_profile_updated_email",
+    "send_farmer_profile_updated_email_async",
+    "send_new_deal_request_email_to_farmer",
+    "send_new_deal_request_email_to_farmer_async",
+    "send_contact_request_email_to_farmer",
+    "send_contact_request_email_to_farmer_async",
+    "send_crop_added_email",
+    "send_crop_added_email_async",
+    "send_deal_accepted_email_to_farmer",
+    "send_deal_accepted_email_to_farmer_async",
+]

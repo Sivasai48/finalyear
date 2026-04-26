@@ -97,13 +97,13 @@ export default function FarmerDashboard() {
     try {
       // @ts-ignore
       const userId = user?.id || user?.sub
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${userId}/stats`)
+      const response = await fetch(`http://localhost:8000/api/farmers/${userId}/stats`)
       if (!response.ok) throw new Error("Failed to fetch stats")
 
       const data = await response.json()
 
       // Fetch requests to get separate counts for crop and contact requests
-      const requestsResponse = await fetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}`)
+      const requestsResponse = await fetch(`http://localhost:8000/api/trader-requests/farmer/${userId}`)
       let cropRequests = 0
       let contactRequests = 0
 
@@ -131,9 +131,9 @@ export default function FarmerDashboard() {
       // @ts-ignore
       const userId = user?.id || user?.sub
       const [cropsRes, pricesRes, requestsRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/crops/farmer/${userId}`),
-        fetch(`http://127.0.0.1:8000/api/market-prices/`),
-        fetch(`http://127.0.0.1:8000/api/trader-requests/farmer/${userId}`),
+        fetch(`http://localhost:8000/api/crops/farmer/${userId}`),
+        fetch(`http://localhost:8000/api/market-prices/`),
+        fetch(`http://localhost:8000/api/trader-requests/farmer/${userId}`),
       ])
       if (cropsRes.ok) {
         const data = await cropsRes.json()
