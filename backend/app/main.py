@@ -21,9 +21,16 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup: Create database tables
-    Base.metadata.create_all(bind=engine)
+    try:
+        # Startup: Create database tables
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created or verified successfully.")
+    except Exception as e:
+        print(f"Warning: Could not connect to database during startup. Error: {e}")
+        print("Application will start, but database-dependent endpoints may fail.")
+    
     yield
+    
     # Shutdown: cleanup if needed
     pass
 
