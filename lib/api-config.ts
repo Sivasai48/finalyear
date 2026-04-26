@@ -1,7 +1,9 @@
 // Central API configuration for the frontend
-// Use this to easily switch between localhost and production
+// On Vercel, the FastAPI backend is served at the same domain via /api/* routes
+// On local dev, it runs on localhost:8000
+// Set NEXT_PUBLIC_API_URL in your .env.local or Vercel environment variables
 
-export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const API_ENDPOINTS = {
     // Auth
